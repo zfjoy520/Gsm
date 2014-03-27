@@ -24,7 +24,6 @@ func Init() error {
 	}
 	// 添加到常量中
 	RedisMap["r1"] = client
-
 	// fmt.Println("....%s", reflect.Indirect(RedisMap["r1"]))
 	// client.Quit()
 	return nil
@@ -49,17 +48,45 @@ func Save(obj interface{}) error {
 	dataStructType := dataStruct.Type()
 	for i := 0; i < dataStructType.NumField(); i++ {
 		field := dataStructType.Field(i)
+		dfiled := dataStruct.Field(i)
 
 		var fieldv interface{}
-		fieldv = dataStruct.Field(i)
-		if field.Type.Kind() == reflect.Int {
-			fieldv = dataStruct.Field(i).Int()
+		switch field.Type.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			fieldv = dfiled.Int()
+			fmt.Println("int://", field.Name, fieldv)
+
+		case reflect.String:
+			fieldv = dfiled.String()
+
+		case reflect.Bool:
+			fieldv = dfiled.Bool()
+
+		case reflect.Array, reflect.Slice:
+			fieldv = dfiled.Interface().([]string)
+			arrfield := reflect.ValueOf(fieldv)
+			var str []string
+			for i := 0; i < arrfield.Len(); i++ {
+				str = append(str, arrfield.Index(i).String())
+				// fmt.Println("Array://", str) //strings.Join(fieldv," "))
+			}
+			fieldv = strings.Join(str, " ")
+
+		case reflect.Float32, reflect.Float64:
+			fieldv = strconv.FormatFloat(dfiled.Float(), 'G', 30, 32)
+			// fmt.Println("Float32://", fieldv)
+		default:
+			// return errors.New("unsupported type in Scan: ")
 		}
 		// params...
 		params = append(params, field.Name, fieldv)
 	}
-	fmt.Println(params)
-	GetDb().HMSet(Key(obj), params...)
+	// fmt.Println(params)
+	str, err := GetDb().HMSet(Key(obj), params...)
+	fmt.Println(str)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -80,17 +107,29 @@ func GetObj(obj interface{}) error {
 	dataStructType := dataStruct.Type()
 	for i := 0; i < dataStructType.NumField(); i++ {
 		field := dataStructType.Field(i)
-		// fieldv := dataStruct.Field(i)
+		fieldv := dataStruct.Field(i)
+		var thev interface{}
+		switch field.Type.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+			// fieldv.Set(reflect.ValueOf(i))
+			thev, _ = strconv.Atoi(structmap[field.Name])
+			fieldv.Set(reflect.ValueOf(thev))
+			fmt.Println(field.Name, "=>", thev)
 
+		case reflect.Int64:
+
+		}
 		// if field.Type.Kind() == reflect.Int {
-		// 	fieldv.Set(reflect.ValueOf(i))
+
+		// }
 		// } else {
 		// 	fieldv.Set(reflect.ValueOf(strconv.Itoa(i)))
 		// }
+		// fieldv.Set(reflect.ValueOf(thev))
 		fmt.Println(structmap[field.Name])
 
 	}
-	// fmt.Println(dataStructType)
+
 	return nil
 }
 

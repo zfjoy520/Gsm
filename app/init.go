@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/robfig/revel"
-	"gsm_test/app/gsm"
+	"gsm/app/gsm"
 )
 
 func init() {
