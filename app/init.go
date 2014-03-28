@@ -42,3 +42,10 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 	fc[0](c, fc[1:]) // Execute the next filter stage.
 
 }
+
+// rv := reflect.ValueOf(test)
+// dataStruct := reflect.Indirect(rv)
+// fieldv := FieldByName("arr")
+//  var aa[]int = []int{1,2,3}
+
+// aa放到fieldv里面，怎么操作？
